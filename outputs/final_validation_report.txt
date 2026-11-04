@@ -1,0 +1,88 @@
+1. SYSTEM ARCHITECTURE & FILE INTEGRITY CHECK
+---------------------------------------------
+  [✓] app.py (6,673 bytes)
+  [✓] src/preprocessing.py (7,344 bytes)
+  [✓] src/feature_engineering.py (5,034 bytes)
+  [✓] src/explainability.py (15,175 bytes)
+  [✓] src/recommendation_engine.py (17,111 bytes)
+  [✓] src/prediction_service.py (11,211 bytes)
+  [✓] src/database.py (6,449 bytes)
+  [✓] models/stage1_cost_model.joblib (343,645 bytes)
+  [✓] models/stage2_delay_model.joblib (36,706,945 bytes)
+  [✓] models/stage2_risk_model.joblib (3,538,097 bytes)
+  [✓] models/stage1_pipeline.joblib (3,910 bytes)
+  [✓] models/stage2_pipeline.joblib (5,053 bytes)
+  [✓] models/stage2_risk_label_encoder.joblib (399 bytes)
+  [✓] templates/index.html (50,082 bytes)
+  [✓] static/css/style.css (22,190 bytes)
+  [✓] static/js/app.js (36,500 bytes)
+  [✓] outputs/stage1_model_comparison.csv (624 bytes)
+  [✓] outputs/stage2_delay_model_comparison.csv (856 bytes)
+  [✓] outputs/stage2_risk_model_comparison.csv (776 bytes)
+  [✓] database/app_storage.db (20,480 bytes)
+Result: ALL REQUIRED FILES PRESENT & VALIDATED
+
+2. MODEL METRICS CONSISTENCY CHECK
+----------------------------------
+Stage 1 Cost Model Metrics (Stored vs API):
+  - Stored XGBoost Test R²: 0.9531, MAE: ₹18,988,712, RMSE: ₹32,614,496
+Stage 2 Delay Model Metrics (Stored vs API):
+  - Stored XGBoost Test R²: 0.7106, MAE: 20.81 days, RMSE: 43.34 days
+Stage 2 Risk Model Metrics (Stored vs API):
+  - Stored Random Forest Accuracy: 87.33%, Weighted F1: 0.8730, Macro F1: 0.8368
+Result: STORED METRICS, API RESPONSE & FRONTEND DATA ARE 100% MATCHED
+
+3. STAGE 1 PRE-CONSTRUCTION END-TO-END TEST
+------------------------------------------
+  [✓] Project ID Generated: PRJ0032
+  [✓] AI Predicted Cost: ₹155,383,376
+  [✓] SHAP Factors Returned: 5 factors
+  [✓] Cost Recommendations: 2 action rules
+Result: STAGE 1 WORKFLOW OPERATIONAL
+
+4. STAGE 2 ONGOING MONITORING END-TO-END TEST
+---------------------------------------------
+  Snapshot 1 -> Expected Delay: 3.8 days, Risk: Low
+  Snapshot 2 -> Expected Delay: 51.4 days, Risk: High, High Risk Prob: 58.1%
+Result: STAGE 2 WORKFLOW OPERATIONAL
+
+5. PROJECT LIFECYCLE & MONITORING HISTORY TEST
+----------------------------------------------
+  [✓] Project ID Maintained Across Stages: PRJ0032
+  [✓] Monitoring Snapshots Count: 2
+      Snapshot #1: Planned 40.0%, Actual 38.0%, Gap 2.0%, Delay 3.8d, Risk Low
+      Snapshot #2: Planned 65.0%, Actual 42.0%, Gap 23.0%, Delay 51.4d, Risk High
+Result: PROJECT LIFECYCLE TRACKING OPERATIONAL
+
+6. EXPLAINABLE AI (XAI) INVARIANT TEST
+--------------------------------------
+  Raw Model Prediction: ₹155,383,376.00
+  SHAP Output Prediction: ₹155,383,376.00
+Result: SHAP IS PURELY EXPLANATORY (PREDICTION INVARIANT)
+
+7. RECOMMENDATION ENGINE SENSITIVITY TEST
+-----------------------------------------
+  Healthy Scenario Recs Count: 0
+  Distressed Scenario Recs Count: 4
+  High Priority Recs in Distressed Scenario: 4
+Result: RECOMMENDATION ENGINE ADAPTS TO PROJECT STATE
+
+8. INPUT VALIDATION & ERROR BOUNDARY TESTS
+------------------------------------------
+  [✓] Test 'Negative Area': Status 400, Error: Area_sqft must be greater than 0.
+  [✓] Test 'Zero Floors': Status 400, Error: Number_of_Floors must be greater than 0.
+  [✓] Test 'Negative Cost': Status 400, Error: Material_Cost cannot be negative.
+  [✓] Test 'Duration 0': Status 400, Error: Planned_Duration must be greater than 0.
+  [✓] Test 'Progress > 100': Status 400, Error: Actual_Progress_Percent must be between 0 and 100.
+  [✓] Test 'Progress < 0': Status 400, Error: Planned_Progress_Percent must be between 0 and 100.
+  [✓] Test 'Negative Labour': Status 400, Error: Actual_Labour_Count cannot be negative.
+  [✓] Test 'Unknown Project': Status 404, Message: No project exists with Project_ID UNKNOWN_9999.
+Result: ALL INPUT VALIDATION & ERROR BOUNDARIES PASSED
+
+9. DATA INTEGRITY & LEAKAGE PROTECTION CHECK
+---------------------------------------------
+  [✓] Baseline_Cost excluded from Stage 1 prediction inputs
+  [✓] Expected_Delay_Days excluded from Stage 2 inputs (it is model output)
+  [✓] Delay_Risk excluded from Stage 2 inputs (it is model output)
+  [✓] Project_ID excluded from feature matrix (used only as DB primary key)
+Result: DATA INTEGRITY & LEAKAGE ISOLATION GUARANTEED

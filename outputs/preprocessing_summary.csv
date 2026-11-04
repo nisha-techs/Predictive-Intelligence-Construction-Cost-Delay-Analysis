@@ -1,0 +1,4 @@
+Stage,Raw Features,Encoded Features,Train Rows,Test Rows,Target
+Stage 1 (Cost Estimation),11,54,2400,600,Total_Construction_Cost
+Stage 2 (Delay Days),16,59,2400,600,Expected_Delay_Days
+Stage 2 (Delay Risk),16,59,2400,600,Delay_Risk

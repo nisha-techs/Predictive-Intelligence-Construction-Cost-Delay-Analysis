@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Construction Cost & Delay Analysis System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Application Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <!-- App Container -->
+    <div class="app-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon"><i class="fa-solid fa-building-columns"></i></div>
+                <div class="brand-text">
+                    <h2>Construction Intelligence</h2>
+                    <p>Cost & Delay Platform</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                    <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
+                </a>
+                <a href="#cost-estimation" class="nav-item" data-view="cost-estimation">
+                    <i class="fa-solid fa-calculator"></i> <span>Cost Estimation</span>
+                </a>
+                <a href="#monitoring" class="nav-item" data-view="monitoring">
+                    <i class="fa-solid fa-stopwatch"></i> <span>Ongoing Monitoring</span>
+                </a>
+                <a href="#project-analysis" class="nav-item" data-view="project-analysis">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Project Analysis</span>
+                </a>
+                <a href="#model-performance" class="nav-item" data-view="model-performance">
+                    <i class="fa-solid fa-chart-column"></i> <span>Model Performance</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Backend Connected</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Layout -->
+        <main class="main-content">
+            
+            <!-- Top Bar Header -->
+            <header class="top-header">
+                <div class="header-title">
+                    <h1 id="page-title">Project Overview & Monitoring Dashboard</h1>
+                    <p id="page-subtitle">Construction Cost Estimation and Project Delay Analysis</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-refresh-data">
+                        <i class="fa-solid fa-arrows-rotate"></i> Refresh Data
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                        <div class="user-info">
+                            <span class="user-name">Project Engineer</span>
+                            <span class="user-role">Civil Engineering Dept</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Notifications / Toast Area -->
+            <div id="toast-container" class="toast-container"></div>
+
+            <!-- Page Views Container -->
+            <div class="view-container">
+
+                <!-- 1. DASHBOARD VIEW -->
+                <section id="view-dashboard" class="view-panel active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fa-solid fa-folder-open"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Total Projects</span>
+                                <h3 id="stat-total-projects">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-card-interactive" id="card-monitored-projects" tabindex="0" role="button" aria-label="View Monitored Projects in Project Analysis">
+                            <div class="stat-icon"><i class="fa-solid fa-list-check"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Monitored Projects</span>
+                                <h3 id="stat-monitored-projects">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-card-interactive" id="card-high-risk-projects" tabindex="0" role="button" aria-label="View High Risk Projects in Project Analysis">
+                            <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">High Risk Projects</span>
+                                <h3 id="stat-high-risk-projects">0</h3>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="stat-data">
+                                <span class="stat-label">Avg Estimated Cost</span>
+                                <h3 id="stat-avg-cost">₹0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-6">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Project Activity & Overview</h3>
+                                <p class="text-sm text-secondary">Pre-construction cost estimates and ongoing project status records</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="switchView('cost-estimation')">
+                                <i class="fa-solid fa-plus"></i> New Cost Estimate
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Project ID</th>
+                                        <th>Project Type</th>
+                                        <th>Location</th>
+                                        <th>Scale (Sq.Ft / Floors)</th>
+                                        <th>Estimated Cost</th>
+                                        <th>Created Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-projects-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center py-6 text-muted">Loading stored project records...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. COST ESTIMATION VIEW (STAGE 1) -->
+                <section id="view-cost-estimation" class="view-panel">
+                    <div class="grid-layout">
+                        <!-- Form Column -->
+                        <div class="form-card">
+                            <span class="card-header-badge">Stage 1: Pre-Construction</span>
+                            <h2>Construction Cost Estimation</h2>
+                            <p class="subtitle">Enter engineering parameters to calculate estimated construction cost and analyze SHAP contributing factors.</p>
+                            
+                            <form id="form-stage1-cost">
+                                <!-- FIELDSET 1: PROJECT DETAILS -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-building"></i> Project Details
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="s1-project-type">Project Type <span class="req">*</span></label>
+                                            <select id="s1-project-type" name="Project_Type" required class="form-control">
+                                                <option value="Residential">Residential Building</option>
+                                                <option value="Apartment">Apartment Complex</option>
+                                                <option value="Villa">Luxury Villa</option>
+                                                <option value="Commercial">Commercial Tower</option>
+                                                <option value="Warehouse">Industrial Warehouse</option>
+                                                <option value="Industrial">Industrial Plant</option>
+                                                <option value="Office">Corporate Office</option>
+                                                <option value="School">Educational School</option>
+                                                <option value="Shopping_Complex">Shopping Complex</option>
+                                                <option value="Hospital">Hospital / Healthcare Facility</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-location">Location <span class="req">*</span></label>
+                                            <select id="s1-location" name="Location" required class="form-control">
+                                                <option value="Chennai">Chennai</option>
+                                                <option value="Coimbatore">Coimbatore</option>
+                                                <option value="Madurai">Madurai</option>
+                                                <option value="Tiruchirappalli">Tiruchirappalli</option>
+                                                <option value="Salem">Salem</option>
+                                                <option value="Vellore">Vellore</option>
+                                                <option value="Tiruppur">Tiruppur</option>
+                                                <option value="Hosur">Hosur</option>
+                                                <option value="Kanchipuram">Kanchipuram</option>
+                                                <option value="Erode">Erode</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-area">Area (sq ft) <span class="req">*</span></label>
+                                            <input type="number" id="s1-area" name="Area_sqft" min="100" max="500000" step="100" value="5000" required class="form-control" placeholder="e.g. 5000">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-floors">Number of Floors <span class="req">*</span></label>
+                                            <input type="number" id="s1-floors" name="Number_of_Floors" min="1" max="50" value="4" required class="form-control" placeholder="e.g. 4">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- FIELDSET 2: RESOURCE DETAILS -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-cubes"></i> Resource Details
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label for="s1-material-type">Material Type <span class="req">*</span></label>
+                                            <select id="s1-material-type" name="Material_Type" required class="form-control">
+                                                <option value="Standard_RCC">Standard RCC Structure</option>
+                                                <option value="Premium_RCC">Premium RCC Finish</option>
+                                                <option value="Steel_Frame">Structural Steel Frame</option>
+                                                <option value="AAC_Block">AAC Block Masonry</option>
+                                                <option value="Precast_Concrete">Precast Concrete Panels</option>
+                                                <option value="Green_Building">Green Certified Materials</option>
+                                                <option value="Brick_Concrete">Traditional Brick & Concrete</option>
+                                                <option value="High_End_Finish">High-End Architectural Finish</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-material-cost">Material Cost (₹) <span class="req">*</span></label>
+                                            <input type="number" id="s1-material-cost" name="Material_Cost" min="100000" value="4000000" required class="form-control" placeholder="e.g. 4000000">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-labour-cost">Labour Cost (₹) <span class="req">*</span></label>
+                                            <input type="number" id="s1-labour-cost" name="Labour_Cost" min="10000" value="800000" required class="form-control" placeholder="e.g. 800000">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-labour-count">Labour Count <span class="req">*</span></label>
+                                            <input type="number" id="s1-labour-count" name="Labour_Count" min="1" max="500" value="25" required class="form-control" placeholder="e.g. 25">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s1-equipment-type">Equipment Type <span class="req">*</span></label>
+                                            <select id="s1-equipment-type" name="Equipment_Type" required class="form-control">
+                                                <option value="Concrete_Mixer">Concrete Mixer Set</option>
+                                                <option value="Excavator">Excavator Unit</option>
+                                                <option value="Crane">Tower Crane</option>
+                                                <option value="Crane_and_Mixer">Crane & Concrete Mixer</option>
+                                                <option value="Excavator_and_Mixer">Excavator & Concrete Mixer</option>
+                                                <option value="Excavator_Crane_Mixer">Excavator, Crane & Mixer</option>
+                                                <option value="Heavy_Equipment_Set">Heavy Equipment Machinery Set</option>
+                                                <option value="Bulldozer">Bulldozer Unit</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group full-width">
+                                            <label for="s1-equipment-cost">Equipment Cost (₹) <span class="req">*</span></label>
+                                            <input type="number" id="s1-equipment-cost" name="Equipment_Cost" min="0" value="150000" required class="form-control" placeholder="e.g. 150000">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- FIELDSET 3: SCHEDULE -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-calendar-days"></i> Schedule
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label for="s1-planned-duration">Planned Duration (days) <span class="req">*</span></label>
+                                            <input type="number" id="s1-planned-duration" name="Planned_Duration" min="30" max="3600" value="360" required class="form-control" placeholder="e.g. 360">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary btn-block" id="btn-submit-s1">
+                                        <i class="fa-solid fa-calculator"></i> Estimate Construction Cost
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Results & XAI Column -->
+                        <div class="results-column">
+                            <div id="s1-placeholder" class="placeholder-card">
+                                <div class="placeholder-icon"><i class="fa-solid fa-calculator"></i></div>
+                                <h3>Cost Estimation Ready</h3>
+                                <p>Fill in the project details and click "Estimate Construction Cost" to view the predicted total cost, SHAP contributing factors, and recommendations.</p>
+                            </div>
+
+                            <div id="s1-results" class="results-wrapper hidden">
+                                <!-- Prediction Result Card -->
+                                <div class="result-hero-card">
+                                    <div class="hero-header">
+                                        <span class="badge badge-sky">Estimated Total Construction Cost</span>
+                                        <span class="project-id-tag" id="s1-res-project-id" style="font-weight:700; color:var(--navy-primary);">PRJ0001</span>
+                                    </div>
+                                    <div class="hero-amount" id="s1-res-cost">₹0</div>
+                                    <p class="hero-subtitle">Pre-Construction Cost Estimation Result</p>
+                                </div>
+
+                                <!-- Model Explanation Panel -->
+                                <div class="panel-card mt-4">
+                                    <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px;">
+                                        <h3>Key Factors Influencing Estimated Cost</h3>
+                                        <p class="text-xs text-secondary" style="font-size: 12px; margin: 0;">
+                                            SHAP values indicate how individual features contributed to the model prediction relative to the baseline.
+                                        </p>
+                                    </div>
+                                    <div id="s1-shap-bars" class="shap-bars-container">
+                                        <!-- SHAP bars injected via JS -->
+                                    </div>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 12px;">
+                                        <span>Explanation method: SHAP (SHapley Additive exPlanations)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Recommendations Panel -->
+                                <div class="panel-card mt-4">
+                                    <div class="panel-header">
+                                        <h3>Recommendations</h3>
+                                    </div>
+                                    <div id="s1-recommendations-list" class="recs-list">
+                                        <!-- Recommendations injected via JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. ONGOING MONITORING VIEW (STAGE 2) -->
+                <section id="view-monitoring" class="view-panel">
+                    <div class="grid-layout">
+                        <!-- Form Column -->
+                        <div class="form-card">
+                            <span class="card-header-badge">Stage 2: Execution Monitoring</span>
+                            <h2>Ongoing Monitoring</h2>
+                            <p class="subtitle">Select an existing project and update actual site metrics to analyze delay days and risk category.</p>
+                            
+                            <form id="form-stage2-monitoring">
+                                <!-- FIELDSET 1: PROJECT SELECTION -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-folder"></i> Project Selection
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="s2-select-project">Project ID <span class="req">*</span></label>
+                                        <select id="s2-select-project" name="Project_ID" required class="form-control">
+                                            <option value="">-- Select Stored Project --</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Selected Project Context Card -->
+                                    <div id="s2-project-context" class="context-card mt-4 hidden">
+                                        <div class="context-grid">
+                                            <div><span class="ctx-lbl">Type:</span> <strong id="ctx-type">-</strong></div>
+                                            <div><span class="ctx-lbl">Location:</span> <strong id="ctx-loc">-</strong></div>
+                                            <div><span class="ctx-lbl">Scale:</span> <strong id="ctx-scale">-</strong></div>
+                                            <div><span class="ctx-lbl">Est. Cost:</span> <strong id="ctx-cost" class="text-emerald-700">-</strong></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- FIELDSET 2: CURRENT PROGRESS -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-bars-progress"></i> Current Progress
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label for="s2-planned-progress">Planned Progress (%) <span class="req">*</span></label>
+                                            <input type="number" id="s2-planned-progress" name="Planned_Progress_Percent" min="0" max="100" step="0.5" value="40" required class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s2-actual-progress">Actual Progress (%) <span class="req">*</span></label>
+                                            <input type="number" id="s2-actual-progress" name="Actual_Progress_Percent" min="0" max="100" step="0.5" value="28" required class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- FIELDSET 3: RESOURCE STATUS -->
+                                <div class="fieldset-group">
+                                    <div class="fieldset-title">
+                                        <i class="fa-solid fa-users-gear"></i> Resource Status
+                                    </div>
+                                    <div class="form-grid">
+                                        <div class="form-group full-width">
+                                            <label for="s2-actual-labour">Actual Labour Deployed <span class="req">*</span></label>
+                                            <input type="number" id="s2-actual-labour" name="Actual_Labour_Count" min="0" max="1000" value="18" required class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s2-mat-avail">Material Availability (%) <span class="req">*</span></label>
+                                            <input type="number" id="s2-mat-avail" name="Material_Availability_Percent" min="0" max="100" step="1" value="70" required class="form-control">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="s2-eq-avail">Equipment Availability (%) <span class="req">*</span></label>
+                                            <input type="number" id="s2-eq-avail" name="Equipment_Availability_Percent" min="0" max="100" step="1" value="75" required class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group flex-align-center gap-2 mt-3" style="background: rgba(37, 99, 235, 0.04); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color);">
+                                    <input type="checkbox" id="s2-complete-monitoring" name="is_completed" value="1" style="width: 16px; height: 16px; cursor: pointer;">
+                                    <label for="s2-complete-monitoring" style="font-size: 13px; font-weight: 600; color: var(--text-primary); cursor: pointer; margin: 0;">
+                                        Mark Ongoing Monitoring as Completed (Final Stage 2 Analysis)
+                                    </label>
+                                </div>
+
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary btn-block" id="btn-submit-s2">
+                                        <i class="fa-solid fa-clock-rotate-left"></i> Analyze Delay & Risk
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Results Column -->
+                        <div class="results-column">
+                            <div id="s2-placeholder" class="placeholder-card">
+                                <div class="placeholder-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                                <h3>Monitoring Assessment Ready</h3>
+                                <p>Select a Project ID and enter current execution progress to predict expected delay days, risk category, and view recommended actions.</p>
+                            </div>
+
+                            <div id="s2-results" class="results-wrapper hidden">
+                                <!-- Dual Result Card -->
+                                <div class="dual-result-card" id="s2-risk-hero-card">
+                                    <div class="result-box">
+                                        <span class="box-lbl">Expected Delay</span>
+                                        <h3 id="s2-res-delay" class="text-amber-700" style="font-size:24px; font-weight:700;">0 Days</h3>
+                                        <span class="box-sub">Forecasted Schedule Overrun</span>
+                                    </div>
+                                    <div class="divider-line"></div>
+                                    <div class="result-box">
+                                        <span class="box-lbl">Delay Risk Category</span>
+                                        <div id="s2-risk-badge-container" class="mt-1">
+                                            <span class="risk-badge risk-medium" id="s2-res-risk-badge">MEDIUM</span>
+                                        </div>
+                                        <span class="box-sub">Multi-Class Classification</span>
+                                    </div>
+                                </div>
+
+                                <!-- Class Probabilities Panel -->
+                                <div class="panel-card mt-4">
+                                    <div class="panel-header">
+                                        <h3>Risk Class Probabilities</h3>
+                                    </div>
+                                    <div class="probability-bars">
+                                        <div class="prob-row">
+                                            <span class="prob-lbl">High Risk</span>
+                                            <div class="prob-track"><div class="prob-fill bg-rose-500" id="prob-high-bar" style="width: 0%"></div></div>
+                                            <span class="prob-val" id="prob-high-val">0%</span>
+                                        </div>
+                                        <div class="prob-row">
+                                            <span class="prob-lbl">Medium Risk</span>
+                                            <div class="prob-track"><div class="prob-fill bg-amber-500" id="prob-med-bar" style="width: 0%"></div></div>
+                                            <span class="prob-val" id="prob-med-val">0%</span>
+                                        </div>
+                                        <div class="prob-row">
+                                            <span class="prob-lbl">Low Risk</span>
+                                            <div class="prob-track"><div class="prob-fill bg-emerald-500" id="prob-low-bar" style="width: 0%"></div></div>
+                                            <span class="prob-val" id="prob-low-val">0%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Model Explanation Panel -->
+                                <div class="panel-card mt-4">
+                                    <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 4px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 14px;">
+                                        <h3>Factors Influencing Delay Risk</h3>
+                                        <p class="text-xs text-secondary" id="s2-shap-description" style="font-size: 12px; margin: 0;">
+                                            These values show how each feature contributed to the current model prediction. Positive contributions support the predicted class, while negative contributions move the prediction away from it.
+                                        </p>
+                                    </div>
+                                    <div id="s2-shap-bars" class="shap-bars-container">
+                                        <!-- SHAP bars injected via JS -->
+                                    </div>
+                                    <div style="font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 12px;">
+                                        <span>Explanation method: SHAP (SHapley Additive exPlanations)</span>
+                                    </div>
+                                </div>
+
+                                <!-- Recommendations Panel -->
+                                <div class="panel-card mt-4">
+                                    <div class="panel-header">
+                                        <h3>Recommendations</h3>
+                                    </div>
+                                    <div id="s2-recommendations-list" class="recs-list">
+                                        <!-- Recommendations injected via JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. PROJECT ANALYSIS VIEW -->
+                <section id="view-project-analysis" class="view-panel">
+                    <div class="panel-card">
+                        <div class="panel-header flex-between">
+                            <div>
+                                <h2>Project Lifecycle & Analysis</h2>
+                                <p class="text-sm text-secondary">Select a project to view pre-construction baseline specifications and execution monitoring history.</p>
+                            </div>
+                            <div class="flex-align-center gap-3">
+                                <span id="analysis-filter-badge" class="badge hidden" style="font-size: 11px; padding: 5px 12px; cursor: pointer;" onclick="resetAnalysisFilter()" title="Click to clear filter and show all projects">
+                                    <span id="analysis-filter-text">Filter Active</span> <i class="fa-solid fa-xmark ml-1"></i>
+                                </span>
+                                <div id="analysis-completion-action"></div>
+                                <div class="select-wrapper">
+                                    <select id="analysis-select-project" class="form-control min-w-250">
+                                        <option value="">-- Select Project ID --</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="analysis-placeholder" class="placeholder-card my-8">
+                            <div class="placeholder-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                            <h3>Select a Project to Inspect Analysis</h3>
+                            <p>Choose a Project ID from the dropdown above to view estimated cost, progress history, and snapshot monitoring records.</p>
+                        </div>
+
+                        <div id="analysis-content" class="hidden">
+                            <!-- Lifecycle Flow Indicator -->
+                            <div class="lifecycle-flow">
+                                <div class="flow-step" id="flow-step-1">
+                                    <div class="step-num">1</div>
+                                    <div class="step-lbl">Project Created</div>
+                                </div>
+                                <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="flow-step" id="flow-step-2">
+                                    <div class="step-num">2</div>
+                                    <div class="step-lbl">Cost Estimated</div>
+                                </div>
+                                <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="flow-step" id="flow-step-3">
+                                    <div class="step-num">3</div>
+                                    <div class="step-lbl">Ongoing Monitoring</div>
+                                </div>
+                                <div class="flow-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+                                <div class="flow-step" id="flow-step-4">
+                                    <div class="step-num">4</div>
+                                    <div class="step-lbl">Delay & Risk SHAP</div>
+                                </div>
+                            </div>
+
+                            <!-- Project Overview Details -->
+                            <div class="grid-2-cols mt-6">
+                                <div class="info-card">
+                                    <h4>Stage 1: Pre-Construction Baseline</h4>
+                                    <div class="info-grid">
+                                        <div><span>Project ID:</span> <strong id="an-pid">-</strong></div>
+                                        <div><span>Type:</span> <strong id="an-type">-</strong></div>
+                                        <div><span>Location:</span> <strong id="an-loc">-</strong></div>
+                                        <div><span>Building Area:</span> <strong id="an-area">-</strong></div>
+                                        <div><span>Floors:</span> <strong id="an-floors">-</strong></div>
+                                        <div><span>Duration:</span> <strong id="an-duration">-</strong></div>
+                                        <div><span>Estimated Cost:</span> <strong id="an-cost" class="text-emerald-700">-</strong></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h4>Latest Stage 2 Monitoring Snapshot</h4>
+                                    <div class="info-grid" id="an-latest-snapshot">
+                                        <p class="text-secondary">No monitoring records submitted yet for this project.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Progress Tracking Chart -->
+                            <div class="panel-card mt-6">
+                                <h3>Planned vs. Actual Progress History</h3>
+                                <div class="chart-container mt-4" style="height: 280px; position: relative;">
+                                    <canvas id="chart-progress-history"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Historical Monitoring Table -->
+                            <div class="panel-card mt-6">
+                                <h3>Monitoring Snapshots History</h3>
+                                <div class="table-responsive mt-4">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Snapshot #</th>
+                                                <th>Date / Time</th>
+                                                <th>Planned Progress</th>
+                                                <th>Actual Progress</th>
+                                                <th>Progress Gap</th>
+                                                <th>Actual Labour</th>
+                                                <th>Expected Delay</th>
+                                                <th>Delay Risk</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="analysis-history-table-body">
+                                            <tr>
+                                                <td colspan="8" class="text-center py-4">No historical records available.</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. MODEL PERFORMANCE VIEW -->
+                <section id="view-model-performance" class="view-panel">
+                    <div class="panel-card mb-6">
+                        <h2>Machine Learning Model Performance</h2>
+                        <p class="text-secondary">Evaluation metrics and 5-fold cross-validation scores across project modeling stages.</p>
+                    </div>
+
+                    <!-- Stage 1 Metrics -->
+                    <div class="panel-card mb-6">
+                        <div class="panel-header">
+                            <h3>STAGE 1 — COST ESTIMATION (REGRESSION)</h3>
+                            <span class="badge badge-emerald">Selected Model: XGBoost Regressor (R² Score = 95.31%)</span>
+                        </div>
+                        <div class="table-responsive mt-4">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Model Algorithm</th>
+                                        <th>Test MAE (₹)</th>
+                                        <th>Test RMSE (₹)</th>
+                                        <th>Test R² Score</th>
+                                        <th>5-Fold CV R² Mean</th>
+                                        <th>Hyperparameter Tuning</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perf-s1-table-body">
+                                    <tr><td colspan="6" class="text-center py-4">Loading performance metrics...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2 Delay Metrics -->
+                    <div class="panel-card mb-6">
+                        <div class="panel-header">
+                            <h3>STAGE 2 — DELAY PREDICTION (REGRESSION)</h3>
+                            <span class="badge badge-amber">Selected Model: Extra Trees Regressor (R² Score = 73.25%)</span>
+                        </div>
+                        <div class="table-responsive mt-4">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Model Algorithm</th>
+                                        <th>Test MAE (Days)</th>
+                                        <th>Test RMSE (Days)</th>
+                                        <th>Test R² Score</th>
+                                        <th>5-Fold CV R² Mean</th>
+                                        <th>Hyperparameter Tuning</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perf-s2-delay-table-body">
+                                    <tr><td colspan="6" class="text-center py-4">Loading performance metrics...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Stage 2 Risk Metrics -->
+                    <div class="panel-card mb-6">
+                        <div class="panel-header">
+                            <h3>STAGE 2 — DELAY RISK CLASSIFICATION (MULTI-CLASS)</h3>
+                            <span class="badge badge-rose">Selected Model: Random Forest Classifier (Accuracy = 87.33%)</span>
+                        </div>
+                        <div class="table-responsive mt-4">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Model Algorithm</th>
+                                        <th>Accuracy</th>
+                                        <th>Weighted Precision</th>
+                                        <th>Weighted Recall</th>
+                                        <th>Weighted F1 Score</th>
+                                        <th>Macro F1 Score</th>
+                                        <th>Weighted ROC-AUC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="perf-s2-risk-table-body">
+                                    <tr><td colspan="7" class="text-center py-4">Loading performance metrics...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Application JavaScript File -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
